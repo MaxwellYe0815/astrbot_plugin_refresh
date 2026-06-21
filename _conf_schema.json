@@ -1,0 +1,55 @@
+{
+  "enabled": {
+    "description": "启用定时资料刷新",
+    "type": "bool",
+    "default": true
+  },
+  "priority_groups": {
+    "description": "重点群名单",
+    "type": "list",
+    "default": [],
+    "hint": "填写需要高频刷新的群号。也可以在群聊中使用 /refresh add-priority 添加当前群。"
+  },
+  "normal_groups": {
+    "description": "普通群名单",
+    "type": "list",
+    "default": [],
+    "hint": "填写低频排队刷新的群号。也可以在群聊中使用 /refresh add 添加当前群。"
+  },
+  "priority_interval_seconds": {
+    "description": "重点群刷新间隔秒数",
+    "type": "int",
+    "default": 3600,
+    "hint": "默认 3600 秒，即每小时刷新一次。建议不要低于 600 秒。"
+  },
+  "normal_interval_seconds": {
+    "description": "普通群刷新间隔秒数",
+    "type": "int",
+    "default": 3600,
+    "hint": "每隔多久从普通群队列中取一批群刷新。默认每小时。"
+  },
+  "normal_groups_per_interval": {
+    "description": "每轮普通群刷新数量",
+    "type": "int",
+    "default": 1,
+    "hint": "每个普通群刷新周期内最多刷新几个普通群。默认 1，适合大群较多时降低压力。"
+  },
+  "jitter_seconds": {
+    "description": "随机错峰秒数",
+    "type": "int",
+    "default": 300,
+    "hint": "为刷新任务增加随机延迟，避免多个群在整点同时刷新。默认 300 秒。"
+  },
+  "startup_delay_seconds": {
+    "description": "启动延迟秒数",
+    "type": "int",
+    "default": 60,
+    "hint": "AstrBot 启动后等待一段时间再开始刷新，避免和框架启动期抢资源。"
+  },
+  "request_timeout_seconds": {
+    "description": "单次刷新超时秒数",
+    "type": "int",
+    "default": 60,
+    "hint": "调用 OneBot API 刷新群成员列表的超时时间。"
+  }
+}
