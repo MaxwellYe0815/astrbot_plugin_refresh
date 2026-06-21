@@ -6,7 +6,7 @@ from .core.config import PLUGIN_NAME
 from .core.service import RefreshService
 
 
-@register(PLUGIN_NAME, "MaxwellYe", "定时刷新 OneBot 群成员资料缓存", "0.1.0")
+@register(PLUGIN_NAME, "飘寂叶", "定时刷新 OneBot 群成员资料缓存", "1.0.0")
 class RefreshPlugin(Star):
     def __init__(self, context: Context, config: dict | None = None):
         super().__init__(context, config)
@@ -66,7 +66,9 @@ class RefreshPlugin(Star):
 
         target_group_id = self._target_group_id(event, group_id)
         if not target_group_id:
-            yield event.plain_result("请指定群号，或在群聊中使用 /refresh add-priority。")
+            yield event.plain_result(
+                "请指定群号，或在群聊中使用 /refresh add-priority。"
+            )
             return
 
         _, message = await self._service().add_group(target_group_id, priority=True)
@@ -101,7 +103,11 @@ class RefreshPlugin(Star):
 
         result = await self._service().refresh_group(target_group_id)
         if result.ok:
-            count_text = f"，成员数 {result.member_count}" if result.member_count is not None else ""
+            count_text = (
+                f"，成员数 {result.member_count}"
+                if result.member_count is not None
+                else ""
+            )
             yield event.plain_result(f"已刷新群 {target_group_id}{count_text}。")
         else:
             yield event.plain_result(f"刷新群 {target_group_id} 失败：{result.message}")

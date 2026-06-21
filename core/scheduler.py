@@ -50,7 +50,9 @@ class RefreshScheduler:
 
     def _normal_batch_due(self, now: float) -> bool:
         last_run_at = self.storage.last_normal_run_at()
-        return last_run_at <= 0 or now - last_run_at >= self.config.normal_interval_seconds
+        return (
+            last_run_at <= 0 or now - last_run_at >= self.config.normal_interval_seconds
+        )
 
     def _next_normal_batch(self) -> list[str]:
         groups = self.config.normal_groups
@@ -69,7 +71,7 @@ class RefreshScheduler:
         jitter = self.config.jitter_seconds
         if jitter <= 0:
             return 0
-        digest = hashlib.sha1(f"{tier}:{group_id}".encode("utf-8")).digest()
+        digest = hashlib.sha1(f"{tier}:{group_id}".encode()).digest()
         return int.from_bytes(digest[:4], "big") % (jitter + 1)
 
 

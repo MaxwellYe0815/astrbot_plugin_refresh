@@ -8,7 +8,6 @@ from astrbot.api import logger
 
 from .config import RefreshConfig
 
-
 ONEBOT_PLATFORM_NAMES = {"aiocqhttp"}
 
 
@@ -59,7 +58,9 @@ class OneBotClient:
             )
         return platforms
 
-    async def refresh_group_members(self, group_id: str) -> tuple[list[str], int | None]:
+    async def refresh_group_members(
+        self, group_id: str
+    ) -> tuple[list[str], int | None]:
         platforms = self.platforms()
         if not platforms:
             raise RuntimeError("未找到可用的 aiocqhttp / OneBot 平台实例")
@@ -79,7 +80,9 @@ class OneBotClient:
             platform_ids.append(platform.platform_id)
             count = _member_count(result)
             if count is not None:
-                member_count = count if member_count is None else max(member_count, count)
+                member_count = (
+                    count if member_count is None else max(member_count, count)
+                )
 
         return platform_ids, member_count
 

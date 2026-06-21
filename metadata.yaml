@@ -1,9 +1,9 @@
 name: astrbot_plugin_refresh
 display_name: QQ群资料刷新
 desc: 定时调用 OneBot API 刷新群成员资料缓存。
-version: v0.2.0
+version: v1.0.0
 author: 飘寂叶
-repo: ""
+repo: "https://github.com/MaxwellYe0815/astrbot_plugin_refresh"
 support_platforms:
   - aiocqhttp
 astrbot_version: ">=4.16,<5"

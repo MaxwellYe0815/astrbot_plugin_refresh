@@ -9,7 +9,7 @@ from typing import Any
 from astrbot.api import logger
 
 from .config import RefreshConfig
-from .models import RefreshResult, TIER_MANUAL
+from .models import TIER_MANUAL, RefreshResult
 from .onebot_client import OneBotClient
 from .scheduler import RefreshScheduler
 from .storage import RefreshStorage
@@ -96,11 +96,15 @@ class RefreshService:
             await self.storage.save()
             return results
 
-    async def refresh_group(self, group_id: str, *, tier: str = TIER_MANUAL) -> RefreshResult:
+    async def refresh_group(
+        self, group_id: str, *, tier: str = TIER_MANUAL
+    ) -> RefreshResult:
         group_id = str(group_id).strip()
         started_at = time.time()
         try:
-            platform_ids, member_count = await self.onebot.refresh_group_members(group_id)
+            platform_ids, member_count = await self.onebot.refresh_group_members(
+                group_id
+            )
             result = RefreshResult(
                 group_id=group_id,
                 tier=tier,
@@ -177,7 +181,9 @@ class RefreshService:
         lines.append(_format_group_line("普通群", self.config.normal_groups))
         return "\n".join(lines)
 
-    async def add_group(self, group_id: str, *, priority: bool = False) -> tuple[bool, str]:
+    async def add_group(
+        self, group_id: str, *, priority: bool = False
+    ) -> tuple[bool, str]:
         group_id = _normalize_group_id(group_id)
         if not group_id:
             return False, "群号不能为空。"
@@ -221,7 +227,9 @@ class RefreshService:
         priority_groups = _unique_groups(priority_groups)
         priority_set = set(priority_groups)
         normal_groups = [
-            group_id for group_id in _unique_groups(normal_groups) if group_id not in priority_set
+            group_id
+            for group_id in _unique_groups(normal_groups)
+            if group_id not in priority_set
         ]
         self.runtime_config["priority_groups"] = priority_groups
         self.runtime_config["normal_groups"] = normal_groups

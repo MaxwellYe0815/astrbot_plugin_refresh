@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-
 TIER_PRIORITY = "priority"
 TIER_NORMAL = "normal"
 TIER_MANUAL = "manual"
@@ -18,4 +17,3 @@ class RefreshResult:
     finished_at: float
     member_count: int | None = None
     message: str = ""
-

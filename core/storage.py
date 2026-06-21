@@ -27,7 +27,9 @@ class RefreshStorage:
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))
         except Exception as exc:
-            logger.warning(f"refresh: failed to load state file, using empty state: {exc}")
+            logger.warning(
+                f"refresh: failed to load state file, using empty state: {exc}"
+            )
             return
         if isinstance(data, dict):
             self.state.update(data)
@@ -100,4 +102,3 @@ def _float_value(value: Any) -> float:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
-
