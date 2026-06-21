@@ -9,6 +9,8 @@ from .storage import RefreshStorage
 
 
 class RefreshScheduler:
+    """只负责判断哪些群到期，实际刷新交给 service。"""
+
     def __init__(self, config: RefreshConfig, storage: RefreshStorage) -> None:
         self.config = config
         self.storage = storage
@@ -17,10 +19,12 @@ class RefreshScheduler:
         now = time.time() if now is None else now
         targets: list[tuple[str, str]] = []
 
+        # 重点群逐个按自己的成功时间判断。
         for group_id in self.config.priority_groups:
             if self._priority_group_due(group_id, now):
                 targets.append((group_id, TIER_PRIORITY))
 
+        # 普通群按全局队列推进，降低大群较多时的压力。
         if self.config.normal_groups and self._normal_batch_due(now):
             for group_id in self._next_normal_batch():
                 targets.append((group_id, TIER_NORMAL))
@@ -32,8 +36,9 @@ class RefreshScheduler:
         state = self.storage.group_state(group_id)
         last_success_at = _float_value(state.get("last_success_at"))
         last_attempt_at = _float_value(state.get("last_attempt_at"))
-        fail_count = int(state.get("fail_count") or 0)
+        fail_count = _int_value(state.get("fail_count"))
 
+        # 失败后退避，避免后端异常时持续打 API。
         if fail_count > 0:
             backoff = min(3600, 60 * (2 ** min(fail_count - 1, 5)))
             if now - last_attempt_at < backoff:
@@ -59,6 +64,7 @@ class RefreshScheduler:
         if not groups:
             return []
 
+        # cursor 保存在状态文件里，重启后继续轮转。
         per_interval = min(self.config.normal_groups_per_interval, len(groups))
         cursor = self.storage.normal_cursor() % len(groups)
         selected: list[str] = []
@@ -80,3 +86,10 @@ def _float_value(value) -> float:
         return float(value or 0)
     except (TypeError, ValueError):
         return 0.0
+
+
+def _int_value(value) -> int:
+    try:
+        return int(value or 0)
+    except (TypeError, ValueError):
+        return 0

@@ -16,6 +16,8 @@ from .storage import RefreshStorage
 
 
 class RefreshService:
+    """串联调度、OneBot 调用、配置保存和状态持久化。"""
+
     def __init__(
         self,
         context: Any,
@@ -38,6 +40,7 @@ class RefreshService:
         await self.storage.load()
         self.stop_event.clear()
         if self.config.enabled:
+            # 后台任务只做周期检查，不阻塞 AstrBot 主流程。
             self.task = asyncio.create_task(self._loop(), name="astrbot_plugin_refresh")
             logger.info("astrbot_plugin_refresh service started")
         else:
@@ -55,6 +58,7 @@ class RefreshService:
         await self.storage.save()
 
     async def _loop(self) -> None:
+        """后台循环：启动延迟后定期执行一轮到期检查。"""
         await self._sleep_or_stop(self.config.startup_delay_seconds)
         while not self.stop_event.is_set():
             try:
@@ -81,6 +85,7 @@ class RefreshService:
         return max(15, min(60, interval // 6 or 15))
 
     async def run_due_once(self) -> list[RefreshResult]:
+        """执行一轮调度检查，也是 /refresh tick 的实际逻辑。"""
         if not self.config.enabled:
             return []
         async with self.tick_lock:
@@ -88,6 +93,7 @@ class RefreshService:
             results: list[RefreshResult] = []
             seen: set[str] = set()
             for group_id, tier in targets:
+                # 重点群和普通群重复配置时只刷新一次。
                 if group_id in seen:
                     continue
                 seen.add(group_id)
@@ -102,6 +108,7 @@ class RefreshService:
         group_id = str(group_id).strip()
         started_at = time.time()
         try:
+            # OneBot 后端负责拉取并写入自己的成员缓存。
             platform_ids, member_count = await self.onebot.refresh_group_members(
                 group_id
             )
@@ -135,6 +142,7 @@ class RefreshService:
         return result
 
     async def status_text(self) -> str:
+        """生成适合聊天窗口阅读的运行状态。"""
         platforms = self.onebot.platforms()
         lines = [
             "refresh 状态",
@@ -151,6 +159,7 @@ class RefreshService:
         ]
 
         groups = self.storage.state.get("groups") or {}
+        # 只展示最近几条，避免状态消息过长。
         recent = sorted(
             (
                 (str(group_id), state)
@@ -184,6 +193,7 @@ class RefreshService:
     async def add_group(
         self, group_id: str, *, priority: bool = False
     ) -> tuple[bool, str]:
+        """加入或切换群分组，并同步写回 AstrBot 配置。"""
         group_id = _normalize_group_id(group_id)
         if not group_id:
             return False, "群号不能为空。"
@@ -224,6 +234,7 @@ class RefreshService:
         priority_groups: list[str],
         normal_groups: list[str],
     ) -> None:
+        """保存群名单后重建依赖配置的轻量对象。"""
         priority_groups = _unique_groups(priority_groups)
         priority_set = set(priority_groups)
         normal_groups = [

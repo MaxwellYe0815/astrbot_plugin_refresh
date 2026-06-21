@@ -7,6 +7,7 @@ from typing import Any
 PLUGIN_NAME = "astrbot_plugin_refresh"
 
 
+# WebUI 未填写时使用这些保守默认值。
 DEFAULT_CONFIG: dict[str, Any] = {
     "enabled": True,
     "priority_groups": [],
@@ -22,6 +23,8 @@ DEFAULT_CONFIG: dict[str, Any] = {
 
 @dataclass(frozen=True)
 class RefreshConfig:
+    """运行时配置，已做类型清洗和群名单去重。"""
+
     enabled: bool
     priority_groups: list[str]
     normal_groups: list[str]
@@ -36,6 +39,8 @@ class RefreshConfig:
     def from_mapping(cls, raw_config: dict[str, Any] | None) -> RefreshConfig:
         data = dict(DEFAULT_CONFIG)
         data.update(dict(raw_config or {}))
+
+        # 同一个群只保留一个分组，重点群优先。
         priority_groups = _unique_group_ids(data.get("priority_groups"))
         priority_set = set(priority_groups)
         normal_groups = [
@@ -90,6 +95,7 @@ def _positive_int(value: Any, default: int, *, minimum: int) -> int:
 
 
 def _unique_group_ids(value: Any) -> list[str]:
+    """兼容 WebUI list 和手写的分隔字符串。"""
     seen: set[str] = set()
     group_ids: list[str] = []
     for raw in _iter_group_id_values(value):

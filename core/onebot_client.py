@@ -8,22 +8,28 @@ from astrbot.api import logger
 
 from .config import RefreshConfig
 
+# 当前插件只面向 AstrBot 的 OneBot V11 适配器。
 ONEBOT_PLATFORM_NAMES = {"aiocqhttp"}
 
 
 @dataclass(frozen=True)
 class OneBotPlatform:
+    """可调用 OneBot API 的平台实例。"""
+
     platform_id: str
     platform_name: str
     client: Any
 
 
 class OneBotClient:
+    """封装 OneBot API 调用，屏蔽 SnowLuma/NapCatQQ 差异。"""
+
     def __init__(self, context: Any, config: RefreshConfig) -> None:
         self.context = context
         self.config = config
 
     def platforms(self) -> list[OneBotPlatform]:
+        """筛选当前已连接的 aiocqhttp 平台。"""
         manager = getattr(self.context, "platform_manager", None)
         get_insts = getattr(manager, "get_insts", None)
         if not callable(get_insts):
@@ -68,6 +74,7 @@ class OneBotClient:
         platform_ids: list[str] = []
         member_count: int | None = None
         for platform in platforms:
+            # no_cache=True 让后端尽量刷新自己的群成员缓存。
             payload: dict[str, Any] = {
                 "group_id": _group_id_value(group_id),
                 "no_cache": True,
@@ -95,6 +102,7 @@ def _has_call_action(client: Any) -> bool:
 
 
 async def _call_action(client: Any, action: str, payload: dict[str, Any]) -> Any:
+    """兼容 aiocqhttp 客户端的两种 call_action 形态。"""
     call_action = getattr(client, "call_action", None)
     if callable(call_action):
         return await call_action(action, **payload)

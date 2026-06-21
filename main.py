@@ -8,12 +8,15 @@ from .core.service import RefreshService
 
 @register(PLUGIN_NAME, "飘寂叶", "定时刷新 OneBot 群成员资料缓存", "1.0.0")
 class RefreshPlugin(Star):
+    """AstrBot 插件入口，负责命令转发和生命周期管理。"""
+
     def __init__(self, context: Context, config: dict | None = None):
         super().__init__(context, config)
         self.config = config if config is not None else {}
         self.service: RefreshService | None = None
 
     async def initialize(self):
+        # 业务逻辑放在 service 中，入口层保持轻量。
         data_dir = StarTools.get_data_dir(PLUGIN_NAME)
         self.service = RefreshService(
             self.context,
@@ -127,12 +130,15 @@ class RefreshPlugin(Star):
         yield event.plain_result(f"本轮刷新 {len(results)} 个群，成功 {ok_count} 个。")
 
     def _service(self) -> RefreshService:
+        """获取已初始化的 service，避免命令在异常状态下静默失败。"""
         if self.service is None:
             raise RuntimeError("refresh service is not initialized")
         return self.service
 
     def _can_manage(self, event: AstrMessageEvent) -> bool:
+        """私聊默认允许；群聊只允许管理员改配置或手动刷新。"""
         return not event.get_group_id() or event.is_admin()
 
     def _target_group_id(self, event: AstrMessageEvent, group_id: str = "") -> str:
+        """优先使用命令参数，群聊中可回退到当前群号。"""
         return str(group_id or "").strip() or str(event.get_group_id() or "").strip()

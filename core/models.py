@@ -9,6 +9,8 @@ TIER_MANUAL = "manual"
 
 @dataclass(frozen=True)
 class RefreshResult:
+    """一次群资料刷新尝试的结果。"""
+
     group_id: str
     tier: str
     ok: bool

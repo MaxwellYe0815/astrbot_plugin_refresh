@@ -1,1 +1,1 @@
-"""Core modules for astrbot_plugin_refresh."""
+"""refresh 插件核心模块。"""

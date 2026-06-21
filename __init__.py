@@ -1,1 +1,1 @@
-"""AstrBot group member refresh plugin."""
+"""AstrBot 群成员资料刷新插件。"""
